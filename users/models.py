@@ -8,7 +8,7 @@ class CustomUser(AbstractUser):
         MANAGER = 'MANAGER', 'Manager'
         CUSTOMER = 'CUSTOMER', 'Customer'
 
-    role = models.CharField(max_length=10, choices=Role.choices, default=Role.CUSTOMER)
+    role = models.CharField(max_length=10, choices=Role, default=Role.CUSTOMER)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
