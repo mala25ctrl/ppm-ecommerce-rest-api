@@ -20,13 +20,15 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from store.views import CategoryViewSet
+from store.views import CategoryViewSet, ProductViewSet, CartViewSet
 from users.views import UserViewSet
 
 router: DefaultRouter = DefaultRouter()
 
 router.register(r'users', UserViewSet)
 router.register(r'categories', CategoryViewSet)
+router.register(r'products', ProductViewSet)
+router.register(r'carts', CartViewSet, basename='cart')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
