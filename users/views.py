@@ -10,10 +10,20 @@ User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet per la gestione degli utenti.
+    - POST (registrazione): accessibile a tutti
+    - GET list, DELETE: solo Admin
+    - GET retrieve, PUT, PATCH: utente autenticato (solo il proprio profilo, Admin può vedere tutti).
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def get_permissions(self):
+        """
+            Restituisce i permessi in base all'azione richiesta.
+            :return: Lista di permessi
+        """
         if self.action == 'create':
             return [AllowAny()]
         elif self.action in ['list', 'destroy']:
@@ -22,6 +32,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated()]
 
     def get_object(self):
+        """
+            Recupera l'oggetto utente richiesto.
+            Un utente non Admin può accedere solo al proprio profilo.
+            :return: Istanza di User
+            :raises PermissionDenied: se un non-Admin tenta di accedere al profilo di un altro utente
+        """
         obj = super().get_object()
         if self.request.user.role != 'ADMIN' and obj != self.request.user:
             raise PermissionDenied()
