@@ -80,7 +80,7 @@ class OrderViewSet(viewsets.GenericViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
-    def queryset(self):
+    def get_queryset(self):
         user = self.request.user
         if user.role in ('ADMIN', 'MANAGER'):
             return Order.objects.all()
@@ -94,7 +94,7 @@ class OrderViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get'])
     def all(self, request):
-        if request.user.role in ('ADMIN', 'MANAGER'):
+        if request.user.role not in ('ADMIN', 'MANAGER'):
             return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         orders = Order.objects.all()
         serializer = self.get_serializer(orders, many=True)
@@ -117,7 +117,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         # Crea ordine
         order = Order.objects.create(user=request.user)
         for item in items:
-            OrderItem.objects.create(order=order, product=item, quantity=item.quantity,
+            OrderItem.objects.create(order=order, product=item.product, quantity=item.quantity,
                                      price_at_purchase=item.product.price)
             item.product.stock -= item.quantity
             item.product.save()
@@ -130,7 +130,7 @@ class OrderViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=['patch'], url_path='update_status')
     def update_status(self, request, pk=None):
-        if request.user.role in ('ADMIN', 'MANAGER'):
+        if request.user.role not in ('ADMIN', 'MANAGER'):
             return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         try:
             order = Order.objects.get(id=pk)
