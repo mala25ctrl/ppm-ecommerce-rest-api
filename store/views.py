@@ -1,11 +1,10 @@
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 
-from store.models import Category, Product, Cart, CartItem
-from store.serializers import CategorySerializer, ProductSerializer, CartSerializer, CartItemSerializer
+from store.models import Category, Product, Cart, CartItem, Order, OrderItem
+from store.serializers import CategorySerializer, ProductSerializer, CartSerializer, CartItemSerializer, OrderSerializer
 from users.permissions import IsManagerOrAdmin
 
 
@@ -75,3 +74,74 @@ class CartViewSet(viewsets.GenericViewSet):
         cart = self.get_object()
         cart.items.all().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class OrderViewSet(viewsets.GenericViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def queryset(self):
+        user = self.request.user
+        if user.role in ('ADMIN', 'MANAGER'):
+            return Order.objects.all()
+        return Order.objects.filter(user=user)
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        orders = self.get_queryset().filter(user=request.user)
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def all(self, request):
+        if request.user.role in ('ADMIN', 'MANAGER'):
+            return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        orders = Order.objects.all()
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def checkout(self, request):
+        cart, _ = Cart.objects.get_or_create(user=self.request.user)
+        items = cart.items.select_related('product').all()
+
+        if not items.exists():
+            return Response({'detail': 'Cart is empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verfica disponibiltà stock
+        for item in items:
+            if item.product.stock < item.quantity:
+                return Response({'detail': f'Insufficient stock for {item.product.name}.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        # Crea ordine
+        order = Order.objects.create(user=request.user)
+        for item in items:
+            OrderItem.objects.create(order=order, product=item, quantity=item.quantity,
+                                     price_at_purchase=item.product.price)
+            item.product.stock -= item.quantity
+            item.product.save()
+
+        # Svuota carrello
+        cart.items.all().delete()
+
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch'], url_path='update_status')
+    def update_status(self, request, pk=None):
+        if request.user.role in ('ADMIN', 'MANAGER'):
+            return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            order = Order.objects.get(id=pk)
+        except Order.DoesNotExist:
+            return Response({'detail': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        new_status = request.data.get('status')
+        if new_status not in Order.Status.values:
+            return Response({'detail': 'Invalid status.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order.status = new_status
+        order.save()
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
