@@ -26,4 +26,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest manage.py test
+          python manage.py test
