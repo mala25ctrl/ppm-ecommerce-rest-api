@@ -82,7 +82,7 @@ class CartViewSet(viewsets.GenericViewSet):
         :return: Dati dell'articolo aggiornato
         """
         cart = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data['product']
         quantity = serializer.validated_data['quantity']
