@@ -108,7 +108,20 @@ Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
 
 #### Utenti
 
-| Metodo | URL         | Auth | Ruolo | Descrizione                      |
-|--------|-------------|------|-------|----------------------------------|
-| POST   | /api/users/ | No   | Tutti | Registrazione di un nuovo utente |
-| GET    | /api/users/ | JWT  | Admin | Lista di tutti gli utenti        |
+| Metodo    | URL                | Auth | Ruolo               | Descrizione                      |
+|-----------|--------------------|------|---------------------|----------------------------------|
+| POST      | /api/users/        | No   | Tutti               | Registrazione di un nuovo utente |
+| GET       | /api/users/        | JWT  | Admin               | Lista di tutti gli utenti        |
+| GET       | `/api/users/{id}/` | JWT  | Proprietario, ADMIN | Dettaglio utente                 |
+| PUT/PATCH | `/api/users/{id}/` | JWT  | Proprietario, ADMIN | Modifica utente                  |
+| DELETE    | `/api/users/{id}/` | JWT  | ADMIN               | Elimina utente                   |
+
+#### Categorie
+
+| Metodo    | URL                     | Auth | Ruolo          | Descrizione         |
+|-----------|-------------------------|------|----------------|---------------------|
+| GET       | `/api/categories/`      | No   | Tutti          | Lista categorie     |
+| GET       | `/api/categories/{id}/` | No   | Tutti          | Dettaglio categoria |
+| POST      | `/api/categories/`      | JWT  | MANAGER, ADMIN | Crea categoria      |
+| PUT/PATCH | `/api/categories/{id}/` | JWT  | MANAGER, ADMIN | Modifica categoria  |
+| DELETE    | `/api/categories/{id}/` | JWT  | MANAGER, ADMIN | Elimina categoria   |
