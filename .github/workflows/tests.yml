@@ -10,6 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    permissions:
+      checks: write
+      pull-requests: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,7 +30,10 @@ jobs:
 
       - name: Run tests
         run: |
+          mkdir -p test-results
           python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
