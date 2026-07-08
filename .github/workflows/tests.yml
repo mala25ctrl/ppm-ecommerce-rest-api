@@ -31,7 +31,7 @@ jobs:
       - name: Run tests
         run: |
           mkdir -p test-results
-          python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner
+          python manage.py test
         env:
           DJANGO_SETTINGS_MODULE: core.settings
 
