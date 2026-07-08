@@ -70,6 +70,7 @@ python manage.py runserver
 ---
 
 ## Database
+
 il file `db.sqlite3` è incluso nel repository e contiene dati demo precaricati.
 In alternativa, è possibile ricaricare i dati con:
 
@@ -80,6 +81,7 @@ python manage.py loaddata fixtures/initial_data.json
 ---
 
 ## Account demo
+
 | Username      | Password      | Ruolo    |
 |---------------|---------------|----------|
 | admin_demo    | admin12345    | ADMIN    |
@@ -90,3 +92,23 @@ python manage.py loaddata fixtures/initial_data.json
 ---
 
 ## Documentazione API
+
+### Swagger UI
+
+Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
+
+### Endpoint
+
+#### Autenticazione
+
+| Metodo | URL                | Auth | Ruolo | Descrizione                       |
+|--------|--------------------|------|-------|-----------------------------------|
+| POST   | /api/auth/login/   | No   | Tutti | Login e ottenimento del token JWT |
+| POST   | /api/auth/refresh/ | No   | Tutti | Refresh del token JWT             |
+
+#### Utenti
+
+| Metodo | URL         | Auth | Ruolo | Descrizione                      |
+|--------|-------------|------|-------|----------------------------------|
+| POST   | /api/users/ | No   | Tutti | Registrazione di un nuovo utente |
+| GET    | /api/users/ | JWT  | Admin | Lista di tutti gli utenti        |
