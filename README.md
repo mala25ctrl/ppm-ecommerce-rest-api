@@ -95,7 +95,8 @@ python manage.py loaddata fixtures/initial_data.json
 
 ### Swagger UI
 
-Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
+Disponibile in locale: `http://127.0.0.1:8000/api/schema/swagger-ui/`  
+Disponibile online: `https://web-production-6adaf7.up.railway.app/api/schema/swagger-ui/`
 
 ### Endpoint
 
@@ -164,42 +165,95 @@ Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
 pip install httpie
 ```
 
-### URL base locale
+### Avvio server locale
 
 ```
-BASE_URL=http://127.0.0.1:8000/api
-```
-
-### URL base deployed
-
-```
-BASE_URL=
+python manage.py runserver
 ```
 
 ### 1. Registrazione utente
 
 ```bash
-http POST $BASE_URL/api/users/ username=nuovo_utente email=utente@test.com password=password123
+http POST http://127.0.0.1:8000/api/users/ username="nuovo_utente" email="utente@test.com" password="password123"
+```
+
+Risposta:
+
+```json
+{
+  "id": 5,
+  "username": "nuovo_utente",
+  "email": "utente@test.com",
+  "role": "CUSTOMER"
+}
 ```
 
 ### 2. Login e ottenimento token
 
 ```bash
-http POST $BASE_URL/api/auth/login/ username=customer_demo password=customer12345
+http POST http://127.0.0.1:8000/api/auth/login/ username="customer_demo" password="customer12345"
 ```
 
-Copia il valore del campo `access` dalla risposta.
+Risposta:
+
+```json
+{
+  "access": "<access_token>",
+  "refresh": "<refresh_token>"
+}
+```
+
+Copia il valore di `access` e usalo nelle richieste successive come `<access_token>`.
 
 ### 3. Visualizza prodotti (senza token)
 
 ```bash
-http GET $BASE_URL/api/products/
+http GET http://127.0.0.1:8000/api/products/
+```
+
+Risposta:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Laptop Pro 15",
+    "description": "Potente laptop con 16GB Ram e 512GB SSD.",
+    "price": "1299.99",
+    "stock": 15,
+    "category": {
+      "id": 1,
+      "name": "Elettronica",
+      "slug": "elettronica"
+    }
+  }
+]
 ```
 
 ### 4. Visualizza carrello
 
 ```bash
-http GET $BASE_URL/api/cart/me/ "Authorization: Bearer "
+http GET http://127.0.0.1:8000/api/cart/me/ "Authorization: Bearer <access_token>"
+```
+
+Risposta:
+
+```json
+{
+  "id": 1,
+  "created_at": "2026-07-08T11:23:01.692Z",
+  "items": [
+    {
+      "id": 1,
+      "product": {
+        "id": 1,
+        "name": "Laptop Pro 15",
+        "price": "1299.99"
+      },
+      "quantity": 1
+    }
+  ]
+}
 ```
 
 ### 5. Aggiungi prodotto al carrello
@@ -208,10 +262,41 @@ http GET $BASE_URL/api/cart/me/ "Authorization: Bearer "
 http POST $BASE_URL/api/cart/add_item/ "Authorization: Bearer " product_id=1 quantity=2
 ```
 
+Risposta:
+
+```json
+{
+  "id": 1,
+  "quantity": 2
+}
+```
+
 ### 6. Checkout
 
 ```bash
-http POST $BASE_URL/api/orders/checkout/ "Authorization: Bearer "
+http POST http://127.0.0.1:8000/api/cart/add_item/ "Authorization: Bearer <access_token>" product_id=1 quantity=2
+```
+
+Risposta:
+
+```json
+{
+  "id": 1,
+  "created_at": "2026-07-08T11:23:01.711Z",
+  "status": "PENDING",
+  "items": [
+    {
+      "id": 1,
+      "product": {
+        "id": 1,
+        "name": "Laptop Pro 15",
+        "price": "1299.99"
+      },
+      "quantity": 2,
+      "price_at_purchase": "1299.99"
+    }
+  ]
+}
 ```
 
 ### 7. Visualizza i propri ordini
@@ -255,7 +340,11 @@ http GET $BASE_URL/api/orders/all/ "Authorization: Bearer "
 
 ## Deployment
 
-URL:
+Application:
+https://web-production-6adaf7.up.railway.app
+
+Swagger:
+https://web-production-6adaf7.up.railway.app/api/schema/swagger-ui/
 
 ---
 
