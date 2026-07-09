@@ -159,6 +159,57 @@ Disponibile online: `https://web-production-6adaf7.up.railway.app/api/schema/swa
 
 ## Workflow HTTPie
 
+### Configurazione sessione HTTPie con PowerShell
+
+Per evitare di riscrivere ogni volta l'URL completo e il token JWT, è possibile configurare una sessione PowerShell con
+alcune variabili.
+
+```powershell
+$BASE_URL="http://127.0.0.1:8000"
+
+function Login($Username, $Password) {
+    $LOGIN = http POST "$BASE_URL/api/auth/login/" `
+        username=$Username `
+        password=$Password | ConvertFrom-Json
+
+    $Global:TOKEN = $LOGIN.access
+    $Global:REFRESH = $LOGIN.refresh
+}
+```
+
+Per autenticarsi come **Customer**:
+
+```powershell
+Login "customer_demo" "customer12345"
+```
+
+Per autenticarsi come **Manager**:
+
+```powershell
+Login "manager_demo" "manager12345"
+```
+
+Per autenticarsi come **Admin**:
+
+```powershell
+Login "admin_demo" "admin12345"
+```
+
+Le richieste autenticate possono quindi usare:
+
+```powershell
+http GET "$BASE_URL/api/cart/me/" "Authorization: Bearer $TOKEN"
+```
+
+Se il token `access` scade, è possibile generarne uno nuovo utilizzando il `refresh` token:
+
+```powershell
+$TOKEN = (
+    http POST "$BASE_URL/api/auth/refresh/" refresh=$REFRESH |
+    ConvertFrom-Json
+).access
+```
+
 ### Installazione HTTPie
 
 ```bash
@@ -174,7 +225,7 @@ python manage.py runserver
 ### 1. Registrazione utente
 
 ```bash
-http POST http://127.0.0.1:8000/api/users/ username="nuovo_utente" email="utente@test.com" password="password123"
+http POST $BASE_URL/api/users/ username="nuovo_utente" email="utente@test.com" password="password123"
 ```
 
 Risposta:
@@ -191,7 +242,7 @@ Risposta:
 ### 2. Login e ottenimento token
 
 ```bash
-http POST http://127.0.0.1:8000/api/auth/login/ username="customer_demo" password="customer12345"
+http POST $BASE_URL/api/auth/login/ username="customer_demo" password="customer12345"
 ```
 
 Risposta:
@@ -208,7 +259,7 @@ Copia il valore di `access` e usalo nelle richieste successive come `<access_tok
 ### 3. Visualizza prodotti (senza token)
 
 ```bash
-http GET http://127.0.0.1:8000/api/products/
+http GET $BASE_URL/api/products/
 ```
 
 Risposta:
@@ -233,47 +284,59 @@ Risposta:
 ### 4. Visualizza carrello
 
 ```bash
-http GET http://127.0.0.1:8000/api/cart/me/ "Authorization: Bearer <access_token>"
+http GET $BASE_URL/api/cart/me/ "Authorization: Bearer $TOKEN"
 ```
 
 Risposta:
 
 ```json
 {
-    "created_at": "2026-07-08T11:30:42.363000Z",
-    "id": 3,
-    "items": [
-        {
-            "id": 5,
-            "product": {
-                "category": {
-                    "id": 7,
-                    "name": "Elettronica",
-                    "slug": "elettronica"
-                },
-                "description": "Potente laptop con 16GB Ram e 512GB SSD.",
-                "id": 15,
-                "name": "Laptop Pro 15",
-                "price": "1299.99",
-                "stock": 15
-            },
-            "quantity": 1
-        }
-    ]
+  "created_at": "2026-07-08T11:30:42.363000Z",
+  "id": 3,
+  "items": [
+    {
+      "id": 5,
+      "product": {
+        "category": {
+          "id": 7,
+          "name": "Elettronica",
+          "slug": "elettronica"
+        },
+        "description": "Potente laptop con 16GB Ram e 512GB SSD.",
+        "id": 15,
+        "name": "Laptop Pro 15",
+        "price": "1299.99",
+        "stock": 15
+      },
+      "quantity": 1
+    }
+  ]
 }
 ```
 
 ### 5. Aggiungi prodotto al carrello
 
 ```bash
-http POST http://127.0.0.1:8000/api/cart/add_item/ "Authorization: Bearer " product_id=1 quantity=2
+http POST $BASE_URL/api/cart/add_item/ "Authorization: Bearer $TOKEN" product_id=1 quantity=2
 ```
 
 Risposta:
 
 ```json
 {
-  "id": 1,
+  "id": 7,
+  "product": {
+    "category": {
+      "id": 7,
+      "name": "Elettronica",
+      "slug": "elettronica"
+    },
+    "description": "Ultimo smartphone X12 con connessione 5G",
+    "id": 16,
+    "name": "Smartphone X12",
+    "price": "800.00",
+    "stock": 30
+  },
   "quantity": 2
 }
 ```
@@ -281,7 +344,7 @@ Risposta:
 ### 6. Checkout
 
 ```bash
-http POST http://127.0.0.1:8000/api/orders/checkout/ "Authorization: Bearer <access_token>" status="PENDING"
+http POST $BASE_URL/api/orders/checkout/ "Authorization: Bearer $TOKEN" status="PENDING"
 ```
 
 Risposta:
@@ -316,7 +379,55 @@ Risposta:
 ### 7. Visualizza i propri ordini
 
 ```bash
-http GET $BASE_URL/api/orders/me/ "Authorization: Bearer "
+http GET $BASE_URL/api/orders/me/ "Authorization: Bearer $TOKEN"
+```
+
+Risposta:
+
+```json
+[
+  {
+    "created_at": "2026-07-08T11:30:42.378000Z",
+    "id": 7,
+    "items": [
+      {
+        "id": 11,
+        "price_at_purchase": "799.99",
+        "product": {
+          "category": {
+            "id": 7,
+            "name": "Elettronica",
+            "slug": "elettronica"
+          },
+          "description": "Ultimo smartphone X12 con connessione 5G",
+          "id": 16,
+          "name": "Smartphone X12",
+          "price": "800.00",
+          "stock": 28
+        },
+        "quantity": 1
+      },
+      {
+        "id": 12,
+        "price_at_purchase": "19.99",
+        "product": {
+          "category": {
+            "id": 8,
+            "name": "Abbigliamento",
+            "slug": "abbigliamento"
+          },
+          "description": "Comoda T-shirt ",
+          "id": 18,
+          "name": "Cotton T-Shirt",
+          "price": "19.99",
+          "stock": 100
+        },
+        "quantity": 2
+      }
+    ],
+    "status": "DELIVERED"
+  }
+]
 ```
 
 ### 8. Login come Manager
@@ -328,26 +439,138 @@ http POST $BASE_URL/api/auth/login/ username=manager_demo password=manager12345
 ### 9. Crea una categoria (solo Manager/Admin)
 
 ```bash
-http POST $BASE_URL/api/categories/ "Authorization: Bearer " name="Nuova Categoria" slug="nuova-categoria"
+http POST $BASE_URL/api/categories/ "Authorization: Bearer $TOKEN" name="Nuova Categoria" slug="nuova-categoria"
+```
+
+Risposta:
+
+```json
+{
+  "id": 10,
+  "name": "Nuova Categoria",
+  "slug": "nuova-categoria"
+}
+
 ```
 
 ### 10. Visualizza tutti gli ordini (solo Manager/Admin)
 
 ```bash
-http GET $BASE_URL/api/orders/all/ "Authorization: Bearer "
+http GET $BASE_URL/api/orders/all/ "Authorization: Bearer $TOKEN"
+```
+
+Risposta:
+
+```json
+[
+  {
+    "created_at": "2026-07-08T11:30:42.378000Z",
+    "id": 7,
+    "items": [
+      {
+        "id": 11,
+        "price_at_purchase": "799.99",
+        "product": {
+          "category": {
+            "id": 7,
+            "name": "Elettronica",
+            "slug": "elettronica"
+          },
+          "description": "Ultimo smartphone X12 con connessione 5G",
+          "id": 16,
+          "name": "Smartphone X12",
+          "price": "800.00",
+          "stock": 28
+        },
+        "quantity": 1
+      },
+      {
+        "id": 12,
+        "price_at_purchase": "19.99",
+        "product": {
+          "category": {
+            "id": 8,
+            "name": "Abbigliamento",
+            "slug": "abbigliamento"
+          },
+          "description": "Comoda T-shirt ",
+          "id": 18,
+          "name": "Cotton T-Shirt",
+          "price": "19.99",
+          "stock": 100
+        },
+        "quantity": 2
+      }
+    ],
+    "status": "DELIVERED"
+  }
+]
 ```
 
 ### 11. Aggiorna stato ordine (solo Manager/Admin)
 
 ```bash
-http PATCH $BASE_URL/api/orders/1/update_status/ "Authorization: Bearer " status=SHIPPED
+http PATCH $BASE_URL/api/orders/9/update_status/ "Authorization: Bearer $TOKEN" status=SHIPPED
+```
+
+Risposta:
+
+```json
+{
+  "created_at": "2026-07-08T11:30:42.401000Z",
+  "id": 9,
+  "items": [
+    {
+      "id": 14,
+      "price_at_purchase": "44.99",
+      "product": {
+        "category": {
+          "id": 9,
+          "name": "Libri",
+          "slug": "libri"
+        },
+        "description": "Creazione di API con Django REST Framework.",
+        "id": 21,
+        "name": "Django REST Framework",
+        "price": "44.99",
+        "stock": 20
+      },
+      "quantity": 1
+    },
+    {
+      "id": 15,
+      "price_at_purchase": "89.99",
+      "product": {
+        "category": {
+          "id": 8,
+          "name": "Abbigliamento",
+          "slug": "abbigliamento"
+        },
+        "description": "Giacca invernale calda con rivestimento impermeabile.",
+        "id": 19,
+        "name": "Giacca invernale",
+        "price": "89.99",
+        "stock": 25
+      },
+      "quantity": 1
+    }
+  ],
+  "status": "SHIPPED"
+}
 ```
 
 ### 12. Testa azione vietata (Customer tenta di vedere tutti gli ordini)
 
 ```bash
-http GET $BASE_URL/api/orders/all/ "Authorization: Bearer "
-# Risposta attesa: 403 Forbidden
+http GET $BASE_URL/api/orders/all/ "Authorization: Bearer $TOKEN"
+```
+
+Risposta:
+
+```json
+{
+  "detail": "Permission denied"
+}
 ```
 
 ---
