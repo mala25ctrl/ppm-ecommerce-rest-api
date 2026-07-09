@@ -167,6 +167,9 @@ alcune variabili.
 ```powershell
 $BASE_URL="http://127.0.0.1:8000"
 
+# Oppure deployment Railway
+# $BASE_URL="https://web-production-6adaf7.up.railway.app"
+
 function Login($Username, $Password) {
     $LOGIN = http POST "$BASE_URL/api/auth/login/" `
         username=$Username `
