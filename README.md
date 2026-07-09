@@ -153,3 +153,118 @@ Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
 | GET    | `/api/orders/all/`                | JWT  | MANAGER, ADMIN | Visualizza tutti gli ordini |
 | POST   | `/api/orders/checkout/`           | JWT  | CUSTOMER       | Crea ordine dal carrello    |
 | PATCH  | `/api/orders/{id}/update_status/` | JWT  | MANAGER, ADMIN | Aggiorna stato ordine       |
+
+---
+
+## Workflow HTTPie
+
+### Installazione HTTPie
+
+```bash
+pip install httpie
+```
+
+### URL base locale
+
+```
+BASE_URL=http://127.0.0.1:8000/api
+```
+
+### URL base deployed
+
+```
+BASE_URL=
+```
+
+### 1. Registrazione utente
+
+```bash
+http POST $BASE_URL/api/users/ username=nuovo_utente email=utente@test.com password=password123
+```
+
+### 2. Login e ottenimento token
+
+```bash
+http POST $BASE_URL/api/auth/login/ username=customer_demo password=customer12345
+```
+
+Copia il valore del campo `access` dalla risposta.
+
+### 3. Visualizza prodotti (senza token)
+
+```bash
+http GET $BASE_URL/api/products/
+```
+
+### 4. Visualizza carrello
+
+```bash
+http GET $BASE_URL/api/cart/me/ "Authorization: Bearer "
+```
+
+### 5. Aggiungi prodotto al carrello
+
+```bash
+http POST $BASE_URL/api/cart/add_item/ "Authorization: Bearer " product_id=1 quantity=2
+```
+
+### 6. Checkout
+
+```bash
+http POST $BASE_URL/api/orders/checkout/ "Authorization: Bearer "
+```
+
+### 7. Visualizza i propri ordini
+
+```bash
+http GET $BASE_URL/api/orders/me/ "Authorization: Bearer "
+```
+
+### 8. Login come Manager
+
+```bash
+http POST $BASE_URL/api/auth/login/ username=manager_demo password=manager12345
+```
+
+### 9. Crea una categoria (solo Manager/Admin)
+
+```bash
+http POST $BASE_URL/api/categories/ "Authorization: Bearer " name="Nuova Categoria" slug="nuova-categoria"
+```
+
+### 10. Visualizza tutti gli ordini (solo Manager/Admin)
+
+```bash
+http GET $BASE_URL/api/orders/all/ "Authorization: Bearer "
+```
+
+### 11. Aggiorna stato ordine (solo Manager/Admin)
+
+```bash
+http PATCH $BASE_URL/api/orders/1/update_status/ "Authorization: Bearer " status=SHIPPED
+```
+
+### 12. Testa azione vietata (Customer tenta di vedere tutti gli ordini)
+
+```bash
+http GET $BASE_URL/api/orders/all/ "Authorization: Bearer "
+# Risposta attesa: 403 Forbidden
+```
+
+---
+
+## Deployment
+
+URL:
+
+---
+
+## Testing
+
+Il progetto include 40 test di integrazione eseguibili con:
+
+```bash
+python manage.py test
+```
+
+Il workflow CI su GitHub Actions esegue automaticamente tutti i test ad ogni push.
