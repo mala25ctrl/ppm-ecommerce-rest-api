@@ -181,10 +181,10 @@ Risposta:
 
 ```json
 {
-  "id": 5,
-  "username": "nuovo_utente",
   "email": "utente@test.com",
-  "role": "CUSTOMER"
+  "id": 13,
+  "role": "CUSTOMER",
+  "username": "nuovo_utente"
 }
 ```
 
@@ -216,16 +216,16 @@ Risposta:
 ```json
 [
   {
-    "id": 1,
-    "name": "Laptop Pro 15",
-    "description": "Potente laptop con 16GB Ram e 512GB SSD.",
-    "price": "1299.99",
-    "stock": 15,
     "category": {
-      "id": 1,
+      "id": 7,
       "name": "Elettronica",
       "slug": "elettronica"
-    }
+    },
+    "description": "Potente laptop con 16GB Ram e 512GB SSD.",
+    "id": 15,
+    "name": "Laptop Pro 15",
+    "price": "1299.99",
+    "stock": 15
   }
 ]
 ```
@@ -240,26 +240,33 @@ Risposta:
 
 ```json
 {
-  "id": 1,
-  "created_at": "2026-07-08T11:23:01.692Z",
-  "items": [
-    {
-      "id": 1,
-      "product": {
-        "id": 1,
-        "name": "Laptop Pro 15",
-        "price": "1299.99"
-      },
-      "quantity": 1
-    }
-  ]
+    "created_at": "2026-07-08T11:30:42.363000Z",
+    "id": 3,
+    "items": [
+        {
+            "id": 5,
+            "product": {
+                "category": {
+                    "id": 7,
+                    "name": "Elettronica",
+                    "slug": "elettronica"
+                },
+                "description": "Potente laptop con 16GB Ram e 512GB SSD.",
+                "id": 15,
+                "name": "Laptop Pro 15",
+                "price": "1299.99",
+                "stock": 15
+            },
+            "quantity": 1
+        }
+    ]
 }
 ```
 
 ### 5. Aggiungi prodotto al carrello
 
 ```bash
-http POST $BASE_URL/api/cart/add_item/ "Authorization: Bearer " product_id=1 quantity=2
+http POST http://127.0.0.1:8000/api/cart/add_item/ "Authorization: Bearer " product_id=1 quantity=2
 ```
 
 Risposta:
