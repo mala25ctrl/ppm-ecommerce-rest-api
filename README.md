@@ -281,25 +281,32 @@ Risposta:
 ### 6. Checkout
 
 ```bash
-http POST http://127.0.0.1:8000/api/cart/add_item/ "Authorization: Bearer <access_token>" product_id=1 quantity=2
+http POST http://127.0.0.1:8000/api/orders/checkout/ "Authorization: Bearer <access_token>" status="PENDING"
 ```
 
 Risposta:
 
 ```json
 {
-  "id": 1,
-  "created_at": "2026-07-08T11:23:01.711Z",
+  "id": 10,
+  "created_at": "2026-07-09T15:19:30.127548Z",
   "status": "PENDING",
   "items": [
     {
-      "id": 1,
+      "id": 16,
       "product": {
-        "id": 1,
+        "id": 15,
         "name": "Laptop Pro 15",
-        "price": "1299.99"
+        "description": "Potente laptop con 16GB Ram e 512GB SSD.",
+        "price": "1299.99",
+        "stock": 14,
+        "category": {
+          "id": 7,
+          "name": "Elettronica",
+          "slug": "elettronica"
+        }
       },
-      "quantity": 2,
+      "quantity": 1,
       "price_at_purchase": "1299.99"
     }
   ]
