@@ -125,3 +125,31 @@ Disponibile all'indirizzo: `http://127.0.0.1:8000/api/schema/swagger-ui/`
 | POST      | `/api/categories/`      | JWT  | MANAGER, ADMIN | Crea categoria      |
 | PUT/PATCH | `/api/categories/{id}/` | JWT  | MANAGER, ADMIN | Modifica categoria  |
 | DELETE    | `/api/categories/{id}/` | JWT  | MANAGER, ADMIN | Elimina categoria   |
+
+#### Prodotti
+
+| Metodo    | URL                   | Auth | Ruolo          | Descrizione        |
+|-----------|-----------------------|------|----------------|--------------------|
+| GET       | `/api/products/`      | No   | Tutti          | Lista prodotti     |
+| GET       | `/api/products/{id}/` | No   | Tutti          | Dettaglio prodotto |
+| POST      | `/api/products/`      | JWT  | MANAGER, ADMIN | Crea prodotto      |
+| PUT/PATCH | `/api/products/{id}/` | JWT  | MANAGER, ADMIN | Modifica prodotto  |
+| DELETE    | `/api/products/{id}/` | JWT  | MANAGER, ADMIN | Elimina prodotto   |
+
+#### Carrello
+
+| Metodo | URL                           | Auth | Ruolo    | Descrizione                      |
+|--------|-------------------------------|------|----------|----------------------------------|
+| GET    | `/api/cart/me/`               | JWT  | CUSTOMER | Visualizza il proprio carrello   |
+| POST   | `/api/cart/add_item/`         | JWT  | CUSTOMER | Aggiunge prodotto al carrello    |
+| DELETE | `/api/cart/remove_item/{id}/` | JWT  | CUSTOMER | Rimuove un articolo dal carrello |
+| DELETE | `/api/cart/clear/`            | JWT  | CUSTOMER | Svuota il carrello               |
+
+#### Ordini
+
+| Metodo | URL                               | Auth | Ruolo          | Descrizione                 |
+|--------|-----------------------------------|------|----------------|-----------------------------|
+| GET    | `/api/orders/me/`                 | JWT  | CUSTOMER       | Visualizza i propri ordini  |
+| GET    | `/api/orders/all/`                | JWT  | MANAGER, ADMIN | Visualizza tutti gli ordini |
+| POST   | `/api/orders/checkout/`           | JWT  | CUSTOMER       | Crea ordine dal carrello    |
+| PATCH  | `/api/orders/{id}/update_status/` | JWT  | MANAGER, ADMIN | Aggiorna stato ordine       |
