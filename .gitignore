@@ -9,3 +9,5 @@ static/
 .vscode/
 
 test-results/
+
+staticfiles/
