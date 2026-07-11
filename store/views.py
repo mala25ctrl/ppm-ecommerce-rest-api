@@ -1,5 +1,5 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema
-from rest_framework import viewsets, status
+from drf_spectacular.utils import extend_schema_view, extend_schema, inline_serializer
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
@@ -10,12 +10,18 @@ from users.permissions import IsManagerOrAdmin
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Categorie']),
-    retrieve=extend_schema(tags=['Categorie']),
-    create=extend_schema(tags=['Categorie']),
-    update=extend_schema(tags=['Categorie']),
-    partial_update=extend_schema(tags=['Categorie']),
-    destroy=extend_schema(tags=['Categorie']),
+    list=extend_schema(tags=['Categories'], summary='Lista categorie',
+                       description='Restituisce la lista di tutte le categorie disponibili.'),
+    retrieve=extend_schema(tags=['Categories'], summary='Dettaglio categoria',
+                           description='Restituisce i dettagli di una singola categoria.'),
+    create=extend_schema(tags=['Categories'], summary='Crea categoria — solo Manager/Admin',
+                         description='Crea una nuova categoria.'),
+    update=extend_schema(tags=['Categories'], summary='Aggiorna categoria — solo Manager/Admin',
+                         description='Aggiorna una categoria esistente.'),
+    partial_update=extend_schema(tags=['Categories'], summary='Aggiornamento parziale categoria — solo Manager/Admin',
+                                 description='Aggiorna parzialmente una categoria esistente.'),
+    destroy=extend_schema(tags=['Categories'], summary='Elimina categoria — solo Manager/Admin',
+                          description='Elimina una categoria esistente.'),
 )
 class CategoryViewSet(viewsets.ModelViewSet):
     """
@@ -37,12 +43,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Prodotti']),
-    retrieve=extend_schema(tags=['Prodotti']),
-    create=extend_schema(tags=['Prodotti']),
-    update=extend_schema(tags=['Prodotti']),
-    partial_update=extend_schema(tags=['Prodotti']),
-    destroy=extend_schema(tags=['Prodotti']),
+    list=extend_schema(tags=['Products'], summary='Lista prodotti',
+                       description='Restituisce la lista di tutti i prodotti disponibili.'),
+    retrieve=extend_schema(tags=['Products'], summary='Dettaglio prodotto',
+                           description='Restituisce i dettagli di un singolo prodotto.'),
+    create=extend_schema(tags=['Products'], summary='Crea prodotto — solo Manager/Admin',
+                         description='Crea un nuovo prodotto.'),
+    update=extend_schema(tags=['Products'], summary='Aggiorna prodotto — solo Manager/Admin',
+                         description='Aggiorna un prodotto esistente.'),
+    partial_update=extend_schema(tags=['Products'], summary='Aggiornamento parziale prodotto — solo Manager/Admin',
+                                 description='Aggiorna parzialmente un prodotto esistente.'),
+    destroy=extend_schema(tags=['Products'], summary='Elimina prodotto — solo Manager/Admin',
+                          description='Elimina un prodotto esistente.'),
 )
 class ProductViewSet(viewsets.ModelViewSet):
     """
@@ -64,10 +76,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class CartViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet per la gestione del carrello dell'utente autenticato.
-    Ogni utente ha un solo carrello, creato automaticamente al primo accesso.
-    """
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
 
@@ -79,27 +87,16 @@ class CartViewSet(viewsets.GenericViewSet):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         return cart
 
-    @extend_schema(tags=['Cart'])
+    @extend_schema(tags=['Cart'], summary='Visualizza il proprio carrello')
     @action(detail=False, methods=['get'])
     def me(self, request):
-        """
-        Restituisce il carrello dell'utente autenticato con tutti gli articoli presenti.
-        :param request: Richiesta HTTP
-        :return: Dati del carrello serializzati
-        """
         cart = self.get_object()
         serializer = self.get_serializer(cart)
         return Response(serializer.data)
 
-    @extend_schema(tags=['Cart'])
+    @extend_schema(tags=['Cart'], summary='Aggiunge un prodotto al carrello', request=CartItemSerializer)
     @action(detail=False, methods=['post'])
     def add_item(self, request):
-        """
-        Aggiunge un prodotto al carrello.
-        Se il prodotto è già presente, incrementa la quantità.
-        :param request: Richiesta HTTP con product_id e quantity
-        :return: Dati dell'articolo aggiornato
-        """
         cart = self.get_object()
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -115,15 +112,9 @@ class CartViewSet(viewsets.GenericViewSet):
 
         return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
 
-    @extend_schema(tags=['Cart'])
+    @extend_schema(tags=['Cart'], summary='Rimuovi articolo dal carrello')
     @action(detail=False, methods=['delete'], url_path='remove_item/(?P<item_id>[^/.]+)')
     def remove_item(self, request, item_id=None):
-        """
-        Rimuove un singolo articolo dal carrello tramite il suo ID.
-        :param request: Richiesta HTTP
-        :param item_id: Id dell'articolo da rimuovere
-        :return: 204 No Content se eliminato, 404 se non trovato.
-        """
         cart = self.get_object()
         try:
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
@@ -132,27 +123,14 @@ class CartViewSet(viewsets.GenericViewSet):
         except CartItem.DoesNotExist:
             return Response({'detail': 'Item not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(tags=['Cart'])
+    @extend_schema(tags=['Cart'], summary='Svuota il carrello')
     @action(detail=False, methods=['delete'])
     def clear(self, request):
-        """
-        Svuota completamente il carrello dell'utente autenticato, rimuovendo tutti gli articoli presenti.
-        :param request: Richiesta HTTP
-        :return: 204 No Content
-        """
         cart = self.get_object()
         cart.items.all().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema_view(
-    list=extend_schema(tags=['Ordini']),
-    retrieve=extend_schema(tags=['Ordini']),
-    create=extend_schema(tags=['Ordini']),
-    update=extend_schema(tags=['Ordini']),
-    partial_update=extend_schema(tags=['Ordini']),
-    destroy=extend_schema(tags=['Ordini']),
-)
 class OrderViewSet(viewsets.GenericViewSet):
     """
         ViewSet per la gestione degli ordini.
@@ -173,45 +151,25 @@ class OrderViewSet(viewsets.GenericViewSet):
             return Order.objects.all()
         return Order.objects.filter(user=user)
 
-    @extend_schema(tags=['Orders'])
+    @extend_schema(tags=['Orders'], summary='Visualizza i propri ordini')
     @action(detail=False, methods=['get'])
     def me(self, request):
-        """
-        Restituisce gli ordini dell'utente autenticato.
-        :param request: Richiesta HTTP
-        :return: Lista di ordini serializzati
-        """
         orders = self.get_queryset().filter(user=request.user)
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
 
-    @extend_schema(tags=['Orders'])
+    @extend_schema(tags=['Orders'], summary='Visualizza tutti gli ordini - solo Manager/Admin')
     @action(detail=False, methods=['get'])
     def all(self, request):
-        """
-        Restituisce tutti gli ordini presenti nel sistema.
-        Accessibile solo ad Admin e Manager.
-        :param request: Richiesta HTTP
-        :return: Lista di tutti gli ordini serializzati, 403 se non autorizzato.
-        """
         if request.user.role not in ('ADMIN', 'MANAGER'):
             return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         orders = Order.objects.all()
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
 
-    @extend_schema(tags=['Orders'])
+    @extend_schema(tags=['Orders'], summary='Checkout - crea un ordine dal carrello')
     @action(detail=False, methods=['post'])
     def checkout(self, request):
-        """
-        Crea un ordine a partire dal carrello dell'utente autenticato.
-        - Verifica la disponibilità dello stock per ogni prodotto.
-        - Crea l'ordine e i relativi OrderItem con il prezzo al momento dell'acquisto
-        - Scala lo stock dei prodotti acquistati
-        - Svuota il carrello al termine
-        :param request: Richiesta HTTP
-        :return: Dati dell'ordine creato, 400 se carrello vuoto o stock insufficiente.
-        """
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         items = cart.items.select_related('product').all()
 
@@ -238,16 +196,13 @@ class OrderViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(tags=['Orders'])
+    @extend_schema(tags=['Orders'], summary='Aggiorna lo stato di un ordine - solo Manager/Admin',
+                   request=inline_serializer(
+                       name='UpdateStatusSerializer',
+                       fields={'status': serializers.ChoiceField(choices=Order.Status.choices)}
+                   ))
     @action(detail=True, methods=['patch'], url_path='update_status')
     def update_status(self, request, pk=None):
-        """
-        Aggiorna lo stato di un ordine specifico.
-        Accessibile solo ad Admin e Manager.
-        :param request: Richiesta HTTP con il campo status
-        :param pk: ID dell'ordine da aggiornare
-        :return: Dati dell'ordine aggiornato, 403 se non autorizzato, 404 se non trovato, 400 se stato non valido.
-        """
         if request.user.role not in ('ADMIN', 'MANAGER'):
             return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         try:

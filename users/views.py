@@ -9,21 +9,16 @@ from users.serializers import UserSerializer
 
 User = get_user_model()
 
+
 @extend_schema_view(
-    list=extend_schema(tags=['Utenti']),
-    retrieve=extend_schema(tags=['Utenti']),
-    create=extend_schema(tags=['Utenti']),
-    update=extend_schema(tags=['Utenti']),
-    partial_update=extend_schema(tags=['Utenti']),
-    destroy=extend_schema(tags=['Utenti']),
+    list=extend_schema(tags=['Users'], summary='Lista utenti - solo Admin'),
+    retrieve=extend_schema(tags=['Users'], summary='Dettaglio utente — solo proprietario o Admin'),
+    create=extend_schema(tags=['Users'], summary='Registrazione nuovo utente'),
+    update=extend_schema(tags=['Users'], summary='Aggiornamento utente — solo proprietario o Admin'),
+    partial_update=extend_schema(tags=['Users'], summary='Aggiornamento parziale utente — solo proprietario o Admin'),
+    destroy=extend_schema(tags=['Users'], summary='Elimina utente — solo Admin'),
 )
 class UserViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet per la gestione degli utenti.
-    - POST (registrazione): accessibile a tutti
-    - GET list, DELETE: solo Admin
-    - GET retrieve, PUT, PATCH: utente autenticato (solo il proprio profilo, Admin può vedere tutti).
-    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
