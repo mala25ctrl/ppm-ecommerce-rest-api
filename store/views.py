@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -8,6 +9,14 @@ from store.serializers import CategorySerializer, ProductSerializer, CartSeriali
 from users.permissions import IsManagerOrAdmin
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['Categorie']),
+    retrieve=extend_schema(tags=['Categorie']),
+    create=extend_schema(tags=['Categorie']),
+    update=extend_schema(tags=['Categorie']),
+    partial_update=extend_schema(tags=['Categorie']),
+    destroy=extend_schema(tags=['Categorie']),
+)
 class CategoryViewSet(viewsets.ModelViewSet):
     """
     ViewSet per la gestione delle categorie.
@@ -27,6 +36,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return [IsManagerOrAdmin()]
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['Prodotti']),
+    retrieve=extend_schema(tags=['Prodotti']),
+    create=extend_schema(tags=['Prodotti']),
+    update=extend_schema(tags=['Prodotti']),
+    partial_update=extend_schema(tags=['Prodotti']),
+    destroy=extend_schema(tags=['Prodotti']),
+)
 class ProductViewSet(viewsets.ModelViewSet):
     """
     ViewSet per la gestione dei prodotti.
@@ -62,6 +79,7 @@ class CartViewSet(viewsets.GenericViewSet):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         return cart
 
+    @extend_schema(tags=['Cart'])
     @action(detail=False, methods=['get'])
     def me(self, request):
         """
@@ -73,6 +91,7 @@ class CartViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(cart)
         return Response(serializer.data)
 
+    @extend_schema(tags=['Cart'])
     @action(detail=False, methods=['post'])
     def add_item(self, request):
         """
@@ -96,6 +115,7 @@ class CartViewSet(viewsets.GenericViewSet):
 
         return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
 
+    @extend_schema(tags=['Cart'])
     @action(detail=False, methods=['delete'], url_path='remove_item/(?P<item_id>[^/.]+)')
     def remove_item(self, request, item_id=None):
         """
@@ -112,6 +132,7 @@ class CartViewSet(viewsets.GenericViewSet):
         except CartItem.DoesNotExist:
             return Response({'detail': 'Item not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(tags=['Cart'])
     @action(detail=False, methods=['delete'])
     def clear(self, request):
         """
@@ -124,6 +145,14 @@ class CartViewSet(viewsets.GenericViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['Ordini']),
+    retrieve=extend_schema(tags=['Ordini']),
+    create=extend_schema(tags=['Ordini']),
+    update=extend_schema(tags=['Ordini']),
+    partial_update=extend_schema(tags=['Ordini']),
+    destroy=extend_schema(tags=['Ordini']),
+)
 class OrderViewSet(viewsets.GenericViewSet):
     """
         ViewSet per la gestione degli ordini.
@@ -144,6 +173,7 @@ class OrderViewSet(viewsets.GenericViewSet):
             return Order.objects.all()
         return Order.objects.filter(user=user)
 
+    @extend_schema(tags=['Orders'])
     @action(detail=False, methods=['get'])
     def me(self, request):
         """
@@ -155,6 +185,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
 
+    @extend_schema(tags=['Orders'])
     @action(detail=False, methods=['get'])
     def all(self, request):
         """
@@ -169,6 +200,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
 
+    @extend_schema(tags=['Orders'])
     @action(detail=False, methods=['post'])
     def checkout(self, request):
         """
@@ -206,6 +238,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(tags=['Orders'])
     @action(detail=True, methods=['patch'], url_path='update_status')
     def update_status(self, request, pk=None):
         """

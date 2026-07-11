@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
@@ -8,7 +9,14 @@ from users.serializers import UserSerializer
 
 User = get_user_model()
 
-
+@extend_schema_view(
+    list=extend_schema(tags=['Utenti']),
+    retrieve=extend_schema(tags=['Utenti']),
+    create=extend_schema(tags=['Utenti']),
+    update=extend_schema(tags=['Utenti']),
+    partial_update=extend_schema(tags=['Utenti']),
+    destroy=extend_schema(tags=['Utenti']),
+)
 class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet per la gestione degli utenti.
