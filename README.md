@@ -17,6 +17,20 @@ basati su ruoli (Admin, Manager, Customer).
 
 ---
 
+## Tecnologie utilizzate
+
+- Python 3.13
+- Django 6
+- Django REST Framework
+- SQLite
+- JWT (SimpleJWT)
+- drf-spectacular (OpenAPI/Swagger)
+- HTTPie (per testare le API)
+- Railway
+- GitHub Actions
+
+---
+
 ## Funzionalità per ruolo
 
 ### Customer
@@ -179,6 +193,8 @@ function Login($Username, $Password) {
     $Global:REFRESH = $LOGIN.refresh
 }
 ```
+La funzione salva automaticamente i token access e refresh nelle variabili PowerShell 
+$TOKEN e $REFRESH, utilizzate nelle richieste autenticate.
 
 Per autenticarsi come **Customer**:
 
@@ -256,8 +272,6 @@ Risposta:
   "refresh": "<refresh_token>"
 }
 ```
-
-Copia il valore di `access` e usalo nelle richieste successive come `<access_token>`.
 
 ### 3. Visualizza prodotti (senza token)
 
@@ -574,6 +588,27 @@ Risposta:
 {
   "detail": "Permission denied"
 }
+```
+
+---
+
+
+### Comandi sul server deployed
+
+Per testare sul server Railway, sostituisci `$BASE_URL`:
+
+```powershell
+$BASE_URL="https://web-production-6adaf7.up.railway.app"
+Login "customer_demo" "customer12345"
+```
+
+I comandi sono identici a quelli locali. Esempi:
+
+```bash
+http GET https://web-production-6adaf7.up.railway.app/api/products/
+http POST https://web-production-6adaf7.up.railway.app/api/auth/login/ username="customer_demo" password="customer12345"
+http POST https://web-production-6adaf7.up.railway.app/api/orders/checkout/ "Authorization: Bearer $TOKEN"
+http GET https://web-production-6adaf7.up.railway.app/api/orders/all/ "Authorization: Bearer $TOKEN"
 ```
 
 ---
